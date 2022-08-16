@@ -1,13 +1,13 @@
 const router = require("express").Router();
 const User = require("../models/user.model");
+const jwtService = require('../jwt')
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
 router.post('/register', async (req, res) => {
     try {
         const { first_name, last_name, email, password } = req.body;
 
         if (!(email && password && first_name && last_name)) {
-            res.status(400).send("All input is required");
+            return res.status(400).send("All input is required");
         }
 
         const oldUser = await User.findOne({ email });
@@ -21,20 +21,13 @@ router.post('/register', async (req, res) => {
         const user = await User.create({
             first_name,
             last_name,
-            email: email.toLowerCase(), 
+            email: email.toLowerCase(),
             password: encryptedPassword,
         });
+        const payload = { user_id: user._id, email };
+        user.token = jwtService.sign(payload);;
 
-        const token = jwt.sign(
-            { user_id: user._id, email },
-            process.env.TOKEN_KEY,
-            {
-                expiresIn: "2h",
-            }
-        );
-        user.token = token;
-
-        res.status(201).json(user);
+        return res.status(201).json(user);
     } catch (err) {
         console.log(err);
     }

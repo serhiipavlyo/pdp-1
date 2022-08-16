@@ -22,7 +22,6 @@ const initServer = () => {
 
 
     app.post("/welcome", auth, (req, res) => {
-        console.log(req)
         res.status(200).send("Welcome 🙌 ");
     });
     app.listen(process.env.API_PORT || 5000, () => {
